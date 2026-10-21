@@ -1,0 +1,16 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
+<title>Moderator</title><style>body{font-family:system-ui;background:#14112a;color:#eee;margin:0;padding:16px}
+.d{background:#221d44;border-radius:12px;padding:12px;margin:8px 0}.d.approved{border-left:5px solid #4ade80}.d.rejected{opacity:.4}.d.flag{border-left:5px solid #f43f5e}
+button{border:0;border-radius:8px;padding:6px 12px;margin-right:6px;font-weight:700}.ok{background:#4ade80}.no{background:#f43f5e;color:#fff}
+input{padding:8px;border-radius:8px;border:0}small{color:#aaa}</style></head><body>
+<h2>Doubts moderation</h2><input id="p" type="password" placeholder="Moderator passphrase"> <button onclick="go()">Load</button>
+<label><input type="checkbox" id="pend" checked> pending only</label> <span id="s"></span><div id="l"></div>
+<script src="config.js"></script><script src="api.js"></script><script>
+const esc=s=>String(s).replace(/[&<>]/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[x]));let P='';
+async function go(){P=document.getElementById('p').value;await load();setInterval(load,5000)}
+async function load(){try{let a=await DoubtsAPI.modList(P);const all=a.length;if(document.getElementById('pend').checked)a=a.filter(d=>d.status==='pending');
+document.getElementById('s').textContent=a.length+' shown / '+all+' total';
+document.getElementById('l').innerHTML=a.map(d=>`<div class="d ${d.status} ${isAbusive(d.text)?'flag':''}"><b>${esc(d.name)}</b> <small>${d.status} · ${new Date(d.created_at).toLocaleTimeString()}</small><p>${esc(d.text)}</p>
+<button class="ok" onclick="setS(${JSON.stringify(d.id)},'approved')">Approve</button><button class="no" onclick="setS(${JSON.stringify(d.id)},'rejected')">Reject</button></div>`).join('')}catch(e){document.getElementById('s').textContent=e.message}}
+async function setS(id,st){await DoubtsAPI.modSet(P,id,st);load()}
+</script></body></html>
